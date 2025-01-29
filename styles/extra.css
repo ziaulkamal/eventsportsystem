@@ -1,0 +1,41 @@
+/* Sembunyikan kelas default bawaan */
+div.react-datepicker-wrapper {
+    all: unset;
+    /* Hapus semua properti default */
+}
+
+div.react-datepicker__input-container {
+    all: unset;
+    /* Hapus semua properti default */
+}
+
+.collapses {
+  display: none;
+}
+
+.collapses.show {
+  display: block;
+}
+
+.page-content {
+  background-color: var(--tb-header-bg);
+  height: 170px;
+}
+
+.table-responsive {
+  overflow-x: auto;
+}
+
+.table td {
+  max-width: 200px;
+  /* Sesuaikan dengan lebar maksimal yang diinginkan */
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.table td:hover {
+  overflow: visible;
+  white-space: normal;
+  word-break: break-all;
+}
