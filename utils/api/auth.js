@@ -1,7 +1,8 @@
 import axios from 'axios';
 import Cookies from 'js-cookie';
 
-const API_BASE_URL = `${process.env.DOMAIN_RETRIVE_DATA}/api`;
+
+const API_BASE_URL = `${process.env.NEXT_PUBLIC_API_URL}/api`;
 
 // Fungsi untuk login
 axios.defaults.withCredentials = true;
@@ -25,6 +26,7 @@ export const login = async (usernameOrEmail, password) => {
       return response.data;
     }
   } catch (error) {
+    throw error
     console.error('Error during login:', error.response?.data?.message || error.message);
     throw new Error(error.response?.data?.message || 'Login failed');
   }
