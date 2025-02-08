@@ -31,7 +31,7 @@ const TableAtleet = ({ onEditClick, refresh }) => {
                 id: item.id, // Simpan ID atlet
                 rowData: [
                     item.fullName || 'Tidak ada data',
-                    item.imageProfile !== null ? `http://localhost:8000/storage/${item.imageProfile}`
+                    item.imageProfile !== null ? `${process.env.DOMAIN_RETRIVE_DATA}/${item.imageProfile}`
                     : item.gender === 'female' ? `${process.env.NEXT_PUBLIC_BASE_URL}/images/default-bg/female.png` 
                     : `${process.env.NEXT_PUBLIC_BASE_URL}/images/default-bg/male.png`,
                     item.identityNumber || 'Tidak ada data',

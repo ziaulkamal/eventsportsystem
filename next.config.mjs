@@ -2,7 +2,7 @@
 const nextConfig = {
   reactStrictMode: true,
   images: {
-    domains: ['example.com', 'localhost'], // Domain gambar yang diizinkan
+    domains: ['example.com', 'localhost', 'temp-event-sport.tibomedia.my.id'], // Domain gambar yang diizinkan
   },
   async headers() {
     if (process.env.NODE_ENV === 'production') {
@@ -12,7 +12,7 @@ const nextConfig = {
           headers: [
             {
               key: 'Cache-Control',
-              value: 'public, max-age=31536000, immutable', // Cache selama 1 tahun
+              value: 'public, max-age=3600, immutable', // Cache selama 1 tahun
             },
           ],
         },
@@ -24,7 +24,7 @@ const nextConfig = {
     return [
       {
         source: '/api/:path*', // Semua request ke /api di frontend
-        destination: 'http://localhost:8000/api/:path*', // Diarahkan ke backend Laravel
+        destination: 'https://temp-event-sport.tibomedia.my.id/api/:path*', // Diarahkan ke backend Laravel
       },
     ];
   },
