@@ -51,7 +51,7 @@ export default function Login() {
                         <div className="card-body p-sm-5 m-lg-4">
                           <div className="text-center mt-5">
                             <h5 className="fs-3xl">Welcome Back</h5>
-                            <p className="text-muted">Sign in to continue to Vixon.</p>
+                            <p className="text-muted">Sign in to continue</p>
                           </div>
                           <div className="p-2 mt-5">
                             <form onSubmit={handleLogin}>

@@ -17,7 +17,7 @@ export default function TopNav() {
                         <img src={`${process.env.NEXT_PUBLIC_BASE_URL}/images/logo-sm.png`} alt="" height={22} />
                     </span>
                     <span className="logo-lg">
-                        <img src={`${process.env.NEXT_PUBLIC_BASE_URL}/images/logo-light.png`} alt="" height={22} />
+                        <img src={`${process.env.NEXT_PUBLIC_BASE_URL}/images/logo-sm.png`} alt="" height={22} />
                     </span>
                 </Link>
                 <button type="button" className="btn btn-sm p-0 fs-3xl header-item float-end btn-vertical-sm-hover shadow-none"

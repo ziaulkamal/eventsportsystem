@@ -5,8 +5,8 @@ import Title from '@/components/Title';
 
 export default function Home() {
 const dataPage = {
-    title: 'Manajemen Atleet',
-    subtitle: 'Tambah Atleet',
+    title: 'Dashboard',
+    subtitle: 'Main',
   };
 
   return (

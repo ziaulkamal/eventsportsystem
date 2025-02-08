@@ -19,7 +19,7 @@ export default function HeadNav() {
                                     <img src={`${process.env.NEXT_PUBLIC_BASE_URL}/images/logo-sm.png`} alt="" height={22} />
                                 </span>
                                 <span className="logo-lg">
-                                    <img src={`${process.env.NEXT_PUBLIC_BASE_URL}/images/logo-dark.png`} alt="" height={22} />
+                                    <img src={`${process.env.NEXT_PUBLIC_BASE_URL}/images/logo-sm.png`} alt="" height={22} />
                                 </span>
                             </Link>
                             <Link href="/" className="logo logo-light">
@@ -27,7 +27,7 @@ export default function HeadNav() {
                                     <img src={`${process.env.NEXT_PUBLIC_BASE_URL}/images/logo-sm.png`} alt="" height={22} />
                                 </span>
                                 <span className="logo-lg">
-                                    <img src={`${process.env.NEXT_PUBLIC_BASE_URL}/images/logo-light.png`} alt="" height={22} />
+                                    <img src={`${process.env.NEXT_PUBLIC_BASE_URL}/images/logo-sm.png`} alt="" height={22} />
                                 </span>
                             </Link>
                         </div>
