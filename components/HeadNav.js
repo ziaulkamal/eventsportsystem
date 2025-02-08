@@ -74,29 +74,9 @@ export default function HeadNav() {
                             <div className="dropdown-menu dropdown-menu-end">
                                 {/* item*/}
                                 <h6 className="dropdown-header">Welcome Alexandra!</h6>
-                                <a className="dropdown-item fs-sm" href="pages-profile.html">
+                                <a className="dropdown-item fs-sm" href="#">
                                     <i className="bi bi-person-circle text-muted align-middle me-1" />
                                     <span className="align-middle">Profile</span>
-                                </a>
-                                <a className="dropdown-item fs-sm" href="apps-calendar.html">
-                                    <i className="bi bi-cart4 text-muted align-middle me-1" />
-                                    <span className="align-middle">Order Track</span>
-                                </a>
-                                <a className="dropdown-item fs-sm" href="apps-chat.html">
-                                    <i className="bi bi-box-seam text-muted align-middle me-1" />
-                                    <span className="align-middle">Chat</span>
-                                </a>
-                                <a className="dropdown-item fs-sm" href="apps-to-do.html">
-                                    <span className="badge bg-success-subtle text-success float-end ms-2">
-                                        New
-                                    </span>
-                                    <i className="bi bi-cassette text-muted align-middle me-1" />
-                                    <span className="align-middle">To Do</span>
-                                </a>
-                                <div className="dropdown-divider" />
-                                <a className="dropdown-item fs-sm" href="pages-profile-settings.html">
-                                    <i className="bi bi-gear text-muted align-middle me-1" />
-                                    <span className="align-middle">Settings</span>
                                 </a>
                                 <button className="dropdown-item fs-sm" onClick={handleLogoutButton} >
                                     <i className="bi bi-box-arrow-right text-muted align-middle me-1" />

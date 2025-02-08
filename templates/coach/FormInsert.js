@@ -14,6 +14,8 @@ import { getSport } from "@/utils/api/sport";
 import UploadFileComponent from "@/components/UploadFileComponent";
 import { validateDocument } from "@/utils/ValidateDocument";
 import { storeDocument, updateDocument } from "@/utils/api/document";
+import { storeCoach } from "@/utils/api/coach";
+import { validateCoach } from "@/utils/ValidateCoach";
 
 
 const FormUmumInsert = ({ useForm, setActiveTab, setPeopleId, setDocumentId }) => {
@@ -104,7 +106,7 @@ const FormUmumInsert = ({ useForm, setActiveTab, setPeopleId, setDocumentId }) =
                 title: 'Sukses',
                 text: 'Data berhasil disimpan!',
             });
-            setActiveTab('atleet-form-tab');
+            setActiveTab('coach-form-tab');
             setIsSubmitting(true);
             setButtonText("Lanjut");
             setPeopleId(response.id)
@@ -627,7 +629,7 @@ const FormUmumInsert = ({ useForm, setActiveTab, setPeopleId, setDocumentId }) =
     );
 };
 
-const FormAtleetInsert = ({ useForm, setActiveTab, peopleId }) => {
+const FormCoachInsert = ({ useForm, setActiveTab, peopleId }) => {
     const [kontingen, setKontingen] = useState(null);
     const [kontingenOption, setKontingenOption] = useState([]);
     const [cabor, setCabor] = useState(null);
@@ -708,13 +710,12 @@ const FormAtleetInsert = ({ useForm, setActiveTab, peopleId }) => {
         const formData = {
             peopleId: peopleId, // ID orang dari FormUmum
             sportId: cabor?.value, // ID cabang olahraga yang dipilih
+            role: 'coach',
             regionalRepresentative: kontingen?.value.toString(), // ID kontingen yang dipilih
-            height: document.getElementById('height').value, // Tinggi badan
-            weight: document.getElementById('weight').value, // Berat badan
         };
 
         // Validasi data
-        const errors = validateAthlete(formData);
+        const errors = validateCoach(formData);
 
         // Jika ada error, tampilkan pesan error
         if (Object.keys(errors).length > 0) {
@@ -731,11 +732,11 @@ const FormAtleetInsert = ({ useForm, setActiveTab, peopleId }) => {
         // Jika validasi berhasil, kirim data ke API
         try {
             setIsSubmitting(true); // Mulai proses submit
-            const response = await storeAthlete(formData); // Kirim data ke API
+            const response = await storeCoach(formData); // Kirim data ke API
             Swal.fire({
                 icon: 'success',
                 title: 'Sukses',
-                text: 'Data atlet berhasil disimpan!',
+                text: 'Data coach berhasil disimpan!',
             });
             setActiveTab('document-form-tab'); // Pindah ke tab berikutnya
             
@@ -743,7 +744,7 @@ const FormAtleetInsert = ({ useForm, setActiveTab, peopleId }) => {
             Swal.fire({
                 icon: 'error',
                 title: 'Gagal',
-                text: error.response?.data?.message || 'Terjadi kesalahan saat menyimpan data atlet.',
+                text: error.response?.data?.message || 'Terjadi kesalahan saat menyimpan data coach.',
             });
         } 
     };
@@ -752,29 +753,11 @@ const FormAtleetInsert = ({ useForm, setActiveTab, peopleId }) => {
         <div>
             <div className="mb-4">
                 <div>
-                    <h5 className="mb-1">Data Atleet</h5>
+                    <h5 className="mb-1">Data Coach</h5>
                     <p className="text-muted">Yang memiliki symbol <code>*</code> Wajib diisi.</p>
                 </div>
             </div>
             <div className="row">
-                <InputComponent
-                    id="weight"
-                    label="Berat Badan"
-                    type="number"
-                    name="weight"
-                    rowClassName="col-md-6"
-                    readOnly={isSubmitting}
-                    required
-                />
-                <InputComponent
-                    id="height"
-                    label="Tinggi Badan"
-                    type="number"
-                    name="height"
-                    rowClassName="col-md-6"
-                    readOnly={isSubmitting}
-                    required
-                />
                 <SelectComponent
                     label="Cabang Olahraga"
                     name="sportId"
@@ -840,10 +823,6 @@ const FormDokumenInsert = ({ backTable,
     setActiveTab 
 }) => {
     const [docsKtp, setdocsKtp] = useState(null);
-    const [docsIjazah, setdocsIjazah] = useState(null);
-    const [docsSim, setdocsSim] = useState(null);
-    const [docsAkte, setdocsAkte] = useState(null);
-    const [docsTransport, setdocsTransport] = useState(null);
     const [docsSelfieKtp, setdocsSelfieKtp] = useState(null);
     const [docsImageProfile, setdocsImageProfile] = useState(null);
     const [errors, setErrors] = useState({});
@@ -853,10 +832,6 @@ const FormDokumenInsert = ({ backTable,
 
     const resetForm = () => {
         setdocsKtp(null);
-        setdocsIjazah(null);
-        setdocsSim(null);
-        setdocsAkte(null);
-        setdocsTransport(null);
         setdocsSelfieKtp(null);
         setdocsImageProfile(null);
         setErrors({});
@@ -873,16 +848,12 @@ const FormDokumenInsert = ({ backTable,
     const validateRequiredFields = () => {
         const requiredFields = {
             docsKtp: 'Foto KTP',
-            docsIjazah: 'Foto Ijazah',
-            docsAkte: 'Foto Akte Kelahiran',
             docsSelfieKtp: 'Foto Selfie KTP',
             docsImageProfile: 'Pas Foto',
         };
 
         const values = {
             docsKtp,
-            docsIjazah,
-            docsAkte,
             docsSelfieKtp,
             docsImageProfile
         };
@@ -916,8 +887,6 @@ const FormDokumenInsert = ({ backTable,
 
         const values = {
             docsKtp,
-            docsIjazah,
-            docsAkte,
             docsSelfieKtp,
             docsImageProfile
         };
@@ -943,14 +912,6 @@ const FormDokumenInsert = ({ backTable,
 
         if (docsKtp && docsKtp.size > maxSize) {
             fileErrors.docsKtp = 'Ukuran file Foto Profil melebihi 5MB.';
-        }
-
-        if (docsIjazah && docsIjazah.size > maxSize) {
-            fileErrors.docsIjazah = 'Ukuran file Foto Profil melebihi 5MB.';
-        }
-
-        if (docsAkte && docsAkte.size > maxSize) {
-            fileErrors.docsAkte = 'Ukuran file Foto Profil melebihi 5MB.';
         }
 
 
@@ -979,8 +940,6 @@ const FormDokumenInsert = ({ backTable,
 
         const formData = new FormData();
         if (docsKtp) formData.append('docsKtp', docsKtp);
-        if (docsIjazah) formData.append('docsIjazah', docsIjazah);
-        if (docsAkte) formData.append('docsAkte', docsAkte);
         if (docsSelfieKtp) formData.append('docsSelfieKtp', docsSelfieKtp);
         if (docsImageProfile) formData.append('docsImageProfile', docsImageProfile);
    
@@ -1039,26 +998,6 @@ const FormDokumenInsert = ({ backTable,
                 </div>
                 <div className="col-md-3">
                     <UploadFileComponent
-                        label="Foto Ijazah"
-                        name="docsIjazah"
-                        required
-                        onChange={(file) => setdocsIjazah(file)}
-                        error={errors.docsIjazah}
-                        reset={reset}
-                    />
-                </div>
-                <div className="col-md-3">
-                    <UploadFileComponent
-                        label="Foto Akte Kelahiran"
-                        name="docsAkte"
-                        required
-                        onChange={(file) => setdocsAkte(file)}
-                        error={errors.docsAkte}
-                        reset={reset}
-                    />
-                </div>
-                <div className="col-md-3">
-                    <UploadFileComponent
                         label="Foto Selfie + KTP"
                         name="docsSelfieKtp"
                         required
@@ -1107,4 +1046,4 @@ const FormDokumenInsert = ({ backTable,
     );
 };
 
-export { FormUmumInsert, FormAtleetInsert, FormDokumenInsert };
+export { FormUmumInsert, FormCoachInsert, FormDokumenInsert };

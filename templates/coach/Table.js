@@ -1,11 +1,11 @@
 import React, { useEffect, useState } from 'react';
 import DataTableComponent from "@/components/DataTableComponent";
-import { deletePerson, getAthletes } from '@/utils/api/person'; // Import fungsi getAthletes
+import { deletePerson, getAthletes, getCoach } from '@/utils/api/person'; // Import fungsi getAthletes
 import Preloader from '@/components/Preloader';
 import ActionButtons from '@/components/ActionButtons';
 import Swal from 'sweetalert2';
 
-const TableAtleet = ({ onEditClick, refresh }) => {
+const TableCoach = ({ onEditClick, refresh }) => {
     const [data, setData] = useState([]);
     const [columns, setColumns] = useState([]);
     const [loading, setLoading] = useState(true); // Tambahkan state untuk loading
@@ -23,11 +23,9 @@ const TableAtleet = ({ onEditClick, refresh }) => {
     const fetchData = async () => {
         
         try {
-            const athletes = await getAthletes(); // Ambil data dari API
+            const coaches = await getCoach(); // Ambil data dari API
 
-            // Transformasikan data sesuai dengan kolom manual dan tambahkan nomor urut
-
-            const formattedData = athletes.map((item) => ({
+            const formattedData = coaches.map((item) => ({
                 id: item.id, // Simpan ID atlet
                 rowData: [
                     item.fullName || 'Tidak ada data',
@@ -40,13 +38,6 @@ const TableAtleet = ({ onEditClick, refresh }) => {
                     item.regional_representative || 'Tidak ada data',
                     item.sport || 'Tidak ada data',
                     null, // Placeholder untuk tombol aksi
-                    item.height || 'Tidak ada data',
-                    item.weight || 'Tidak ada data',
-                    item.province || 'Tidak ada data',
-                    item.regencie || 'Tidak ada data',
-                    item.district || 'Tidak ada data',
-                    item.village || 'Tidak ada data',
-                    item.address || 'Tidak ada data',
                     item.phoneNumber || 'Tidak ada data',
                     item.religion || 'Tidak ada data',
                     formatTanggalLahir(item.birthdate),
@@ -70,20 +61,13 @@ const TableAtleet = ({ onEditClick, refresh }) => {
     const manualColumns = [
         // 'No', 
         'Nama Lengkap',
-        'Foto Atleet',
+        'Foto Coach',
         'NIK',
         'Usia',
         'Jenis Kelamin',
         'Kontingen', // Kolom baru untuk regional_representative
         'Cabang Olahraga',
         'Opsi',
-        'Tinggi Badan',
-        'Berat Badan',
-        'Provinsi',
-        'Kabupaten / Kota',
-        'Kecamatan',
-        'Desa',
-        'Alamat',
         'No. Telepon',
         'Agama', // Kolom baru untuk usia
         'Tanggal Lahir',
@@ -140,4 +124,4 @@ const TableAtleet = ({ onEditClick, refresh }) => {
     );
 };
 
-export default TableAtleet;
+export default TableCoach;

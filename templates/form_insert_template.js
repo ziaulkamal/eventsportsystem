@@ -874,7 +874,9 @@ const FormDokumenInsert = ({ backTable,
         const requiredFields = {
             docsKtp: 'Foto KTP',
             docsIjazah: 'Foto Ijazah',
+            docsSim: 'Foto Surat Ijin Mengemudi',
             docsAkte: 'Foto Akte Kelahiran',
+            docsTransport: 'Foto Kendaraan',
             docsSelfieKtp: 'Foto Selfie KTP',
             docsImageProfile: 'Pas Foto',
         };
@@ -882,7 +884,9 @@ const FormDokumenInsert = ({ backTable,
         const values = {
             docsKtp,
             docsIjazah,
+            docsSim,
             docsAkte,
+            docsTransport,
             docsSelfieKtp,
             docsImageProfile
         };
@@ -917,7 +921,9 @@ const FormDokumenInsert = ({ backTable,
         const values = {
             docsKtp,
             docsIjazah,
+            docsSim,
             docsAkte,
+            docsTransport,
             docsSelfieKtp,
             docsImageProfile
         };
@@ -949,10 +955,17 @@ const FormDokumenInsert = ({ backTable,
             fileErrors.docsIjazah = 'Ukuran file Foto Profil melebihi 5MB.';
         }
 
+        if (docsSim && docsSim.size > maxSize) {
+            fileErrors.docsSim = 'Ukuran file Foto Profil melebihi 5MB.';
+        }
+
         if (docsAkte && docsAkte.size > maxSize) {
             fileErrors.docsAkte = 'Ukuran file Foto Profil melebihi 5MB.';
         }
 
+        if (docsTransport && docsTransport.size > maxSize) {
+            fileErrors.docsTransport = 'Ukuran file Foto Profil melebihi 5MB.';
+        }
 
         if (docsSelfieKtp && docsSelfieKtp.size > maxSize) {
             fileErrors.docsSelfieKtp = 'Ukuran file Foto Profil melebihi 5MB.';
@@ -980,7 +993,9 @@ const FormDokumenInsert = ({ backTable,
         const formData = new FormData();
         if (docsKtp) formData.append('docsKtp', docsKtp);
         if (docsIjazah) formData.append('docsIjazah', docsIjazah);
+        if (docsSim) formData.append('docsSim', docsSim);
         if (docsAkte) formData.append('docsAkte', docsAkte);
+        if (docsTransport) formData.append('docsTransport', docsTransport);
         if (docsSelfieKtp) formData.append('docsSelfieKtp', docsSelfieKtp);
         if (docsImageProfile) formData.append('docsImageProfile', docsImageProfile);
    
@@ -1049,11 +1064,31 @@ const FormDokumenInsert = ({ backTable,
                 </div>
                 <div className="col-md-3">
                     <UploadFileComponent
+                        label="Foto SIM"
+                        name="docsSim"
+                        required
+                        onChange={(file) => setdocsSim(file)}
+                        error={errors.docsSim}
+                        reset={reset}
+                    />
+                </div>
+                <div className="col-md-3">
+                    <UploadFileComponent
                         label="Foto Akte Kelahiran"
                         name="docsAkte"
                         required
                         onChange={(file) => setdocsAkte(file)}
                         error={errors.docsAkte}
+                        reset={reset}
+                    />
+                </div>
+                <div className="col-md-3">
+                    <UploadFileComponent
+                        label="Foto Kendaraan"
+                        name="docsTransport"
+                        required
+                        onChange={(file) => setdocsTransport(file)}
+                        error={errors.docsTransport}
                         reset={reset}
                     />
                 </div>

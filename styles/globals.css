@@ -1,6 +1,7 @@
+@import './loader.css';
 @import '../styles/bootstrap.min.css';
 @import '../styles/icons.min.css';
 @import '../styles/app.min.css';
 @import 'datatables.net-bs5/dataTables.bootstrap5.min.css';
 @import '../styles/responsive.bootstrap.min.css';
-@import './extra.css'
+@import './extra.css';

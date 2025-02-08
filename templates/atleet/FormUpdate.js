@@ -1,8 +1,8 @@
 import DatePickerComponent from "@/components/DatePickerComponent";
 import InputComponent from "@/components/InputComponent";
 import SelectComponent from "@/components/SelectComponent";
-import { findPersonByNIK, fetchPeopleByNIK, fetchPeopleByAttributes, storePerson } from "@/utils/api/person";
-import { storeAthlete } from '@/utils/api/athlete'; // Import fungsi untuk menyimpan atlet
+import { findPersonByNIK, fetchPeopleByNIK, fetchPeopleByAttributes, storePerson, getPerson, updatePerson, getPeople } from "@/utils/api/person";
+import { getAthletePeople, storeAthlete, updateAthlete } from '@/utils/api/athlete'; // Import fungsi untuk menyimpan atlet
 import { getProvinces, getRegencies, getDistricts, getVillages, getKontingen } from "@/utils/api/kemendagri";
 import { useState, useEffect, useRef  } from "react";
 import { parse, format } from "date-fns";
@@ -12,11 +12,14 @@ import { validatePerson } from "@/utils/ValidatePerson"; // Import fungsi valida
 import { v4 as uuidv4 } from 'uuid';
 import { getSport } from "@/utils/api/sport";
 import UploadFileComponent from "@/components/UploadFileComponent";
-import { validateDocument } from "@/utils/ValidateDocument";
-import { storeDocument, updateDocument } from "@/utils/api/document";
+import { validateDocument, validateDocumentUpdate } from "@/utils/ValidateDocument";
+import { getDocument, getDocuments, patchDocument, storeDocument, updateDocument } from "@/utils/api/document";
+import Preloader from "@/components/Preloader";
+import LoadingComponent from "@/components/LoadingComponent";
+// import { parseDate } from "react-datepicker/dist/date_utils";
 
 
-const FormUmum = ({ setActiveTab, setPeopleId, setDocumentId }) => {
+const FormUmumUpdate = ({ setActiveTab, peopleId, setAtleetRefetchKey  }) => {
     const [ktp, setKTP] = useState("");
     const [placeholderName, setPlaceholderName] = useState("");
     const [gender, setGender] = useState(null);
@@ -35,8 +38,17 @@ const FormUmum = ({ setActiveTab, setPeopleId, setDocumentId }) => {
     const [selectedRegency, setSelectedRegency] = useState(null);
     const [selectedDistrict, setSelectedDistrict] = useState(null);
     const [selectedVillage, setSelectedVillage] = useState(null);
-    const [buttonText, setButtonText] = useState("Validasi");
+    const [buttonText, setButtonText] = useState("Perbaharui");
     const [isSubmitting, setIsSubmitting] = useState(false);
+    const [loading, setLoading] = useState(false);
+    const [personName, setPersonName] = useState("");
+    const [familyCardNumber, setFamilyCardNumber] = useState("");
+    const [phoneNumber, setPhoneNumber] = useState('');
+    const [streetAddress, setStreetAddress] = useState("");
+    const [idDocument, setIdDocument] = useState("");
+    const [loadStateData, setLoadStateData] = useState(true);
+    const [loadingInput, setLoadingInput] = useState(true);
+    const [isModal, setIsModal] = useState(false);
 
     const resetAllForms = () => {
         setIdk("");
@@ -48,21 +60,104 @@ const FormUmum = ({ setActiveTab, setPeopleId, setDocumentId }) => {
         setPlaceholderName("");
         setNamePerson("");
         setSelectedReligion(null);
-        document.getElementById('namePerson').value = "";
-        document.getElementById('familyCardNumber').value = "";
-        document.getElementById('identityNumber').value = "";
-        document.getElementById('phoneNumber').value = "";
-        document.getElementById('streetAddress').value = "";
         setBirthdate(null);
     }
 
+    const handleLoadDataById = (data, idKs) => {
+        const parsedDates = parse(data.birthdate, "dd-MM-yyyy", new Date());
+        setBirthdate(parsedDates);
+        setKTP(data.identityNumber)
+        setPersonName(data.fullName)
+        setGender(
+            data.gender === "male"
+                ? { value: "male", label: "Laki-Laki" }
+                : { value: "female", label: "Perempuan" }
+        );
+        // setBirthdate(format(parsedDate, "dd-MM-yyyy"));
+        setFamilyCardNumber(data.familyCardNumber);
+        const parseReligion = religionOptions.find(option => option.value === data.religion);
+        handleReligionChange(parseReligion);
+        setPhoneNumber(data.phoneNumber)
+        setStreetAddress(data.streetAddress);
+        handleProvinceChange(data.provinceId);
+        setSelectedRegency(data.regencieId);
+        setSelectedDistrict(data.districtId);
+        setSelectedVillage(data.villageId);
+        attributePrefer(data.fullName, format(parsedDates, "yyyy-MM-dd"), data.gender, idKs);
+        setTimeout(async () => {
+            setLoadingInput(false)
+        }, 6000);
+        
+    }
+
+    const handleFamilyIdentityChange = (e) => {
+        setFamilyCardNumber(e.target.value);
+    }
+
+    const handlePhoneNumberChange = (e) => {
+        setPhoneNumber(e.target.value); // Update state when input changes
+    };
+
+    const handleStreetAddressChange = (e) => {
+        setStreetAddress(e.target.value)
+    }
+    useEffect(() => {
+        if (!peopleId) {
+            console.log("peopleId masih null, tidak fetch data");
+            return;
+        }
+
+        const fetchPerson = async () => {
+            try {
+                setLoading(true);
+                setIdk("");
+                setIsSubmitting(false);
+                const data = await getPerson(peopleId);
+                console.log(data);
+                
+                if (data) {
+                    const getIdk = await fetchPeopleByNIK(data.identityNumber);
+                    if (getIdk.code === 500) {
+                        console.log('Tidak terhubung ke server kemenkes');
+                        
+                    }
+                    if (getIdk) {
+                        // console.log(getIdk);
+                        const idKsetup = getIdk.data.id ?? 0;
+                        setIdDocument(data.documentId);
+                        setIdk(idKsetup);
+                        handleLoadDataById(data, idKsetup);
+                        setLoading(false);
+                    }else {
+                        setIdDocument(data.documentId);
+                        // setIdk(idKsetup)
+                        handleLoadDataById(data, 0);
+                        setLoading(false);
+                    }
+                } else {
+                    console.warn("Data Orang gagal dimuat atau kosong");
+                }
+            } catch (err) {
+                console.error("Gagal memuat data:", err);
+            } 
+        };
+
+        fetchPerson();
+    }, [peopleId]); // Trigger hanya saat peopleId berubah
+    useEffect(() => {
+        Swal.fire({
+            icon: 'info',
+            title: 'Pembatasan Form Update',
+            text: 'Anda hanya dibenarkan melakukan update untuk Nomor KK, Nomor HP, Agama, dan juga alamat jalan',
+        });
+    }, [peopleId]);
     const handleSubmit = async () => {
         // Jika sedang dalam proses pengiriman, hentikan
         if (isSubmitting) return;
-
+        
         // Siapkan data yang akan divalidasi dan dikirim
         const formData = {
-            fullName: namePerson,
+            fullName: document.getElementById('namePerson').value,
             age: calculateAge(birthdate), // Hitung usia dari birthdate
             birthdate: format(birthdate, 'yyyy-MM-dd'), // Format tanggal lahir
             identityNumber: ktp,
@@ -76,10 +171,12 @@ const FormUmum = ({ setActiveTab, setPeopleId, setDocumentId }) => {
             villageId: selectedVillage?.value,
             phoneNumber: document.getElementById('phoneNumber').value,
             email: "", // Opsional, bisa ditambahkan jika ada
-            documentId: uuidv4(),
+            documentId: idDocument,
             userId: "", // Opsional, bisa ditambahkan jika ada
         };
-
+        // console.log(formData);
+        
+        // return;
         // Validasi data
         const errors = validatePerson(formData);
 
@@ -97,17 +194,19 @@ const FormUmum = ({ setActiveTab, setPeopleId, setDocumentId }) => {
 
         // Jika validasi berhasil, kirim data ke API
         try {
-            const response = await storePerson(formData);
+            const response = await updatePerson(peopleId, formData);
             Swal.fire({
                 icon: 'success',
                 title: 'Sukses',
-                text: 'Data berhasil disimpan!',
+                text: 'Data berhasil diperbaharui   !',
             });
             setActiveTab('atleet-form-tab');
             setIsSubmitting(true);
-            setButtonText("Lanjut");
-            setPeopleId(response.id)
-            setDocumentId(response.documentId)
+            setButtonText("Telah Terupdate");
+            setAtleetRefetchKey(prevKey => prevKey + 1);
+            // Tambahkan console.log untuk debugging
+
+
         } catch (error) {
             // throw error;
             if (error.response && error.response.data && error.response.data.error_code === 'IDENTITY_NUMBER_TAKEN') {
@@ -126,15 +225,7 @@ const FormUmum = ({ setActiveTab, setPeopleId, setDocumentId }) => {
         }
     };
 
-    const handleResetForm = () => {
-        Swal.fire({
-            title: 'Sukses Reset Form',
-            text: 'Formulir telah direset, silahkan isi kembali !',
-            icon: 'success',
-            confirmButtonText: 'OK'
-        });
-        resetAllForms();
-    }
+
     // Ambil data provinsi saat komponen pertama kali dimuat
     useEffect(() => {
         const fetchProvinces = async () => {
@@ -265,6 +356,7 @@ const FormUmum = ({ setActiveTab, setPeopleId, setDocumentId }) => {
         }
     }, [selectedDistrict, addressData]);
 
+
   // Handler untuk perubahan provinsi
   const handleProvinceChange = (selectedOption) => {
     setSelectedProvince(selectedOption);
@@ -371,16 +463,17 @@ const FormUmum = ({ setActiveTab, setPeopleId, setDocumentId }) => {
 
     // Fungsi untuk mengambil data alamat berdasarkan atribut
     const attributePrefer = async (fullName, birthDate, gender, idK) => {
-        const formattedBirthDate = format(new Date(birthDate), 'yyyy-MM-dd');
+        // const formattedBirthDate = format(new Date(birthDate), 'yyyy-MM-dd');
         try {
             const attributes = {
                 name: fullName,
-                birthdate: formattedBirthDate,
+                birthdate: birthDate,
                 gender: gender,
                 personIdentity: idK,
             };
             const data = await fetchPeopleByAttributes(attributes);
             setAddressData(data);
+            setLoadStateData(false);
         } catch (error) {
                 Swal.fire({
                     icon: 'error',
@@ -391,6 +484,7 @@ const FormUmum = ({ setActiveTab, setPeopleId, setDocumentId }) => {
             setSelectedRegency(null);
             setSelectedDistrict(null);
             setSelectedVillage(null);
+            
         }
     };
 
@@ -470,7 +564,8 @@ const FormUmum = ({ setActiveTab, setPeopleId, setDocumentId }) => {
         return age;
     };
 
-    return (
+    return (<>
+    {!loading && (
         <div className="mb-4">
             <div>
                 <h5 className="mb-1">Data Umum</h5>
@@ -485,7 +580,7 @@ const FormUmum = ({ setActiveTab, setPeopleId, setDocumentId }) => {
                     value={ktp}
                     onChange={handleKTPChange}
                     required
-                    readOnly={isSubmitting}
+                    readOnly={true}
                 />
                 <InputComponent
                     label="IDK"
@@ -494,6 +589,7 @@ const FormUmum = ({ setActiveTab, setPeopleId, setDocumentId }) => {
                     value={idK}
                     onChange={() => {}}
                     hidden
+                    readOnly={true}
                 />
                 <InputComponent
                     id="namePerson"
@@ -501,13 +597,15 @@ const FormUmum = ({ setActiveTab, setPeopleId, setDocumentId }) => {
                     type="text"
                     name="fullName"
                     onChange={handleNameChange}
+                    value={personName}
                     placeholder={placeholderName}
                     required
-                    readOnly={isSubmitting}
+                    readOnly={true}
                 />
                 <SelectComponent
                     label="Jenis Kelamin"
                     name="gender"
+                    id="gender"
                     placeholder="Pilih"
                     options={genderOptions}
                     value={gender}
@@ -516,22 +614,25 @@ const FormUmum = ({ setActiveTab, setPeopleId, setDocumentId }) => {
                     classNamePrefix
                     isSearchable
                     required
-                    readOnly={isSubmitting}
+                    readOnly={true}
                 />
                 <DatePickerComponent
                     label="Tanggal Lahir"
                     selected={birthdate}
                     name="birthdate"
                     onChange={handleDateChange}
+                    value={birthdate}
                     placeholderText="Pilih tanggal lahir"
                     required
-                    readOnly={isSubmitting}
+                    readOnly={true}
                 />
                 <InputComponent
                     id="familyCardNumber"
                     label="Nomor Kartu Keluarga"
                     type="number"
                     name="familyCardNumber"
+                    onChange={handleFamilyIdentityChange}
+                    value={familyCardNumber}
                     readOnly={isSubmitting}
                 />
                 <InputComponent
@@ -539,6 +640,8 @@ const FormUmum = ({ setActiveTab, setPeopleId, setDocumentId }) => {
                     label="Nomor Telepon"
                     type="number"
                     name="phoneNumber"
+                    onChange={handlePhoneNumberChange}
+                    value={phoneNumber}
                     required
                     readOnly={isSubmitting}
                 />
@@ -560,6 +663,9 @@ const FormUmum = ({ setActiveTab, setPeopleId, setDocumentId }) => {
                     label="Alamat Jalan"
                     type="text"
                     name="streetAddress"
+                    // defaultValue={streetAddress}
+                    value={streetAddress}
+                    onChange={handleStreetAddressChange}
                     required
                     readOnly={isSubmitting}
                 />
@@ -573,7 +679,7 @@ const FormUmum = ({ setActiveTab, setPeopleId, setDocumentId }) => {
                     className
                     classNamePrefix
                     isSearchable
-                    readOnly={isSubmitting}
+                    readOnly={true}
                     required
                 />
                 <SelectComponent
@@ -587,7 +693,7 @@ const FormUmum = ({ setActiveTab, setPeopleId, setDocumentId }) => {
                     classNamePrefix
                     isSearchable
                     required
-                    readOnly={isSubmitting}
+                    readOnly={true}
                     isDisabled={!selectedProvince}
                 />
                 <SelectComponent
@@ -601,7 +707,7 @@ const FormUmum = ({ setActiveTab, setPeopleId, setDocumentId }) => {
                     classNamePrefix
                     isSearchable
                     required
-                    readOnly={isSubmitting}
+                    readOnly={true}
                     isDisabled={!selectedRegency}
                 />
                 <SelectComponent
@@ -615,99 +721,148 @@ const FormUmum = ({ setActiveTab, setPeopleId, setDocumentId }) => {
                     classNamePrefix
                     isSearchable
                     required
-                    readOnly={isSubmitting}
+                    readOnly={true}
                     isDisabled={!selectedDistrict}
                 />
             </div>
             <div className="d-flex align-items-start gap-3 mt-4">
-                <button 
-                    type="button" 
-                    onClick={handleResetForm} 
-                    className="btn btn-danger btn-label" 
-                    disabled={isSubmitting}>
-                    <i className="ri-refresh-line label-icon align-middle fs-lg me-2" />
-                    Reset
-                </button>
                 <button
                     type="button"
                     onClick={handleSubmit}
                     className="btn btn-success btn-label right ms-auto nexttab nexttab"
-                    disabled={isSubmitting} // Nonaktifkan tombol saat proses pengiriman
+                    disabled={isSubmitting || loadingInput} // Nonaktifkan tombol saat proses pengiriman
                 >
                     <i className="ri-arrow-right-line label-icon align-middle fs-lg ms-2" />
                     {buttonText} {/* Tampilkan teks tombol berdasarkan state */}
                 </button>
             </div>
         </div>
-    );
+    )}
+    {loading && (
+        <div className="container">LOADING . . . . . . . .
+            </div>
+    )}
+
+   </> );
 };
 
-const FormAtleet = ({ setActiveTab, peopleId }) => {
+const FormAtleetUpdate = ({ setActiveTab, peopleId, atleetRefetchKey  }) => {
     const [kontingen, setKontingen] = useState(null);
     const [kontingenOption, setKontingenOption] = useState([]);
     const [cabor, setCabor] = useState(null);
     const [caborOption, setCaborOption] = useState([]);
-    const [isSubmitting, setIsSubmitting] = useState(false); // State untuk menangani proses submit
-    
+    const [isSubmitting, setIsSubmitting] = useState(false);
+    const [athleteId, setAthleteId] = useState(null);
+    const [weight, setWeight] = useState("");
+    const [height, setHeight] = useState("");
+
     const resetForm = () => {
         setKontingen(null);
         setCabor(null);
-        document.getElementById('height').value = "";
-        document.getElementById('weight').value = "";
+        setWeight("");
+        setHeight("");
         Swal.fire({
             title: 'Sukses Reset Form',
             text: 'Formulir telah direset, silahkan isi kembali !',
             icon: 'success',
             confirmButtonText: 'OK'
         });
-    }
+    };
 
+    // Fetch data cabang olahraga dan kontingen
     useEffect(() => {
         const fetchSports = async () => {
             try {
-                const result = await getSport(); // Ambil data dari API
-                if (result && Array.isArray(result)) { // Pastikan result adalah array
+                const result = await getSport();
+                if (result && Array.isArray(result)) {
                     const formattedOptions = result.map((item) => ({
                         value: item.id,
                         label: item.name,
                     }));
-                    setCaborOption(formattedOptions); // Set opsi cabang olahraga
+                    setCaborOption(formattedOptions);
                 } else {
                     console.error('Data tidak valid:', result);
                 }
             } catch (err) {
-                console.error('Terjadi kesalahan:', err); // Tangani error yang tidak terduga
+                console.error('Terjadi kesalahan saat mengambil data cabang olahraga:', err);
             }
         };
 
         const fetchKontingen = async () => {
             try {
-                const result = await getKontingen(); // Ambil data dari API
-
-                if (result && Array.isArray(result)) { // Pastikan result adalah array
+                const result = await getKontingen();
+                if (result && Array.isArray(result)) {
                     const formattedOptions = result.map((item) => ({
                         value: item.id,
                         label: item.name,
                     }));
-                    setKontingenOption(formattedOptions); // Set opsi cabang olahraga
+                    setKontingenOption(formattedOptions);
+                } else {
+                    console.error('Data tidak valid:', result);
                 }
             } catch (err) {
-                console.error('Terjadi kesalahan:', err); // Tangani error yang tidak terduga
+                console.error('Terjadi kesalahan saat mengambil data kontingen:', err);
             }
-        }
+        };
 
-        fetchKontingen();
-        fetchSports(); // Panggil fungsi untuk mengambil data
-    }, []); // Gunakan dependency array kosong agar useEffect hanya dijalankan sekali
+        const fetchData = async () => {
+            await fetchSports();
+            await fetchKontingen();
+        };
+
+        fetchData();
+    }, []);
+
+    // Fetch data atlet berdasarkan peopleId
+    useEffect(() => {
+        const fetchAthletesId = async () => {
+            try {
+                const data = await getAthletePeople(peopleId);
+                setAthleteId(data.id);
+                // Set weight dan height
+                setWeight(data.weight ? Math.floor(parseFloat(data.weight)) : "");
+                setHeight(data.height ? Math.floor(parseFloat(data.height)) : "");
+
+
+                // Cari opsi cabang olahraga yang sesuai dengan sportId dari data
+                const selectedCabor = caborOption.find(option => option.value === data.sportId);
+                if (selectedCabor) {
+                    setCabor(selectedCabor);
+                } else {
+                    console.warn('Cabang olahraga tidak ditemukan:', data.sportId);
+                }
+
+                const selectedKontingen = kontingenOption.find(option => option.value === parseInt(data.regionalRepresentative, 10));
+
+                if (selectedKontingen) {
+                    setKontingen(selectedKontingen);
+                } else {
+                    console.warn('Kontingen tidak ditemukan:', data.regionalRepresentative);
+                }
+            } catch (err) {
+                // console.error('Terjadi kesalahan saat mengambil data atlet:', err);
+            }
+        };
+
+        if (peopleId && caborOption.length > 0 && kontingenOption.length > 0) {
+            fetchAthletesId();
+        }
+    }, [peopleId, atleetRefetchKey, caborOption, kontingenOption]);
 
     const handleSportChange = (selectedOption) => {
-        setCabor(selectedOption); // Set nilai yang dipilih
+        setCabor(selectedOption);
     };
 
     const handleKontingenChange = (selectedOption) => {
-        setKontingen(selectedOption)
-        console.log(kontingen);
-        
+        setKontingen(selectedOption);
+    };
+
+    const handleWeightChange = (e) => {
+        setWeight(e.target.value);
+    };
+
+    const handleHeightChange = (e) => {
+        setHeight(e.target.value);
     };
 
     const handleSubmit = async () => {
@@ -719,19 +874,18 @@ const FormAtleet = ({ setActiveTab, peopleId }) => {
             });
             return;
         }
+
         // Siapkan data yang akan dikirim
         const formData = {
-            peopleId: peopleId, // ID orang dari FormUmum
-            sportId: cabor?.value, // ID cabang olahraga yang dipilih
-            regionalRepresentative: kontingen?.value.toString(), // ID kontingen yang dipilih
-            height: document.getElementById('height').value, // Tinggi badan
-            weight: document.getElementById('weight').value, // Berat badan
+            peopleId: peopleId,
+            sportId: cabor?.value,
+            regionalRepresentative: kontingen?.value.toString(),
+            height: height,
+            weight: weight,
         };
 
         // Validasi data
         const errors = validateAthlete(formData);
-
-        // Jika ada error, tampilkan pesan error
         if (Object.keys(errors).length > 0) {
             Swal.fire({
                 icon: 'error',
@@ -740,27 +894,28 @@ const FormAtleet = ({ setActiveTab, peopleId }) => {
                     .map((message, index) => `${index + 1}. ${message}`)
                     .join('<br />')}`,
             });
-            return; // Hentikan proses jika ada error
+            return;
         }
 
-        // Jika validasi berhasil, kirim data ke API
+        // Kirim data ke API
         try {
-            setIsSubmitting(true); // Mulai proses submit
-            const response = await storeAthlete(formData); // Kirim data ke API
+            setIsSubmitting(true);
+            const response = await updateAthlete(athleteId,formData);
             Swal.fire({
                 icon: 'success',
                 title: 'Sukses',
                 text: 'Data atlet berhasil disimpan!',
             });
-            setActiveTab('document-form-tab'); // Pindah ke tab berikutnya
-            
+            setActiveTab('document-form-tab');
         } catch (error) {
             Swal.fire({
                 icon: 'error',
                 title: 'Gagal',
                 text: error.response?.data?.message || 'Terjadi kesalahan saat menyimpan data atlet.',
             });
-        } 
+        } finally {
+            setIsSubmitting(false);
+        }
     };
 
     return (
@@ -777,6 +932,8 @@ const FormAtleet = ({ setActiveTab, peopleId }) => {
                     label="Berat Badan"
                     type="number"
                     name="weight"
+                    value={weight}
+                    onChange={handleWeightChange}
                     rowClassName="col-md-6"
                     readOnly={isSubmitting}
                     required
@@ -786,6 +943,8 @@ const FormAtleet = ({ setActiveTab, peopleId }) => {
                     label="Tinggi Badan"
                     type="number"
                     name="height"
+                    value={height}
+                    onChange={handleHeightChange}
                     rowClassName="col-md-6"
                     readOnly={isSubmitting}
                     required
@@ -820,15 +979,6 @@ const FormAtleet = ({ setActiveTab, peopleId }) => {
                 />
             </div>
             <div className="d-flex align-items-start gap-3 mt-4">
-                <button 
-                    type="button" 
-                    onClick={resetForm} 
-                    className="btn btn-danger btn-label" 
-                    disabled={isSubmitting || !peopleId}
-                >
-                    <i className="ri-refresh-line label-icon align-middle fs-lg me-2" />
-                    Reset
-                </button>
                 
                 {peopleId && (
                     <button
@@ -847,181 +997,75 @@ const FormAtleet = ({ setActiveTab, peopleId }) => {
     );
 }
 
-const FormDokumen = ({ documentId, setActiveTab }) => {
-    const [imageProfile, setImageProfile] = useState(null);
-    const [familyProfile, setFamilyProfile] = useState(null);
-    const [ktpPhoto, setKtpPhoto] = useState(null);
-    const [selfiePhoto, setSelfiePhoto] = useState(null);
+const FormDokumenUpdate = ({ setForm, backTable, peopleId, setActiveTab, atleetRefetchKey }) => {
+    const [docsKtp, setdocsKtp] = useState(null);
+    const [docsIjazah, setdocsIjazah] = useState(null);
+    const [docsAkte, setdocsAkte] = useState(null);
+    const [docsSelfieKtp, setdocsSelfieKtp] = useState(null);
+    const [docsImageProfile, setdocsImageProfile] = useState(null);
     const [errors, setErrors] = useState({});
     const [reset, setReset] = useState(false);
-    const [additionalFiles, setAdditionalFiles] = useState([]);
     const [isSubmitting, setIsSubmitting] = useState(false);
+    const [loading, setLoading] = useState(true);
+    const [documentIds, setDocumentIds] = useState(null);
 
-    const handleAddFile = () => {
-        setAdditionalFiles([...additionalFiles, { file: null, name: '', type: '', url: '' }]);
-    };
+    useEffect(() => {
+        const fetchDocument = async () => {
+            const data = await getPerson(peopleId);
+            const dokument = await getDocument(data.documentId);
+            setDocumentIds(data.documentId);
+            setdocsKtp(`http://localhost:8000/storage/${dokument.docsKtp}`);
+            setdocsIjazah(`http://localhost:8000/storage/${dokument.docsIjazah}`);
+            setdocsAkte(`http://localhost:8000/storage/${dokument.docsAkte}`);
+            setdocsSelfieKtp(`http://localhost:8000/storage/${dokument.docsSelfieKtp}`);
+            setdocsImageProfile(`http://localhost:8000/storage/${dokument.docsImageProfile}`);
 
-    const handleRemoveAdditionalFile = (index) => {
-        const newFiles = additionalFiles.filter((_, i) => i !== index);
-        setAdditionalFiles(newFiles);
-    };
-
-    const handleRemoveFile = (index) => {
-        const newFiles = additionalFiles.filter((_, i) => i !== index);
-        setAdditionalFiles(newFiles);
-    };
-
-    const handleFileChange = (index, file) => {
-        const newFiles = [...additionalFiles];
-        newFiles[index].file = file;
-        newFiles[index].type = file.type.split('/')[1];
-        setAdditionalFiles(newFiles);
-    };
-
-    const handleFileNameChange = (index, name) => {
-        const newFiles = [...additionalFiles];
-        newFiles[index].name = name;
-        setAdditionalFiles(newFiles);
-    };
-
-    const resetForm = () => {
-        setImageProfile(null);
-        setFamilyProfile(null);
-        setKtpPhoto(null);
-        setSelfiePhoto(null);
-        setErrors({});
-        setAdditionalFiles([]);
-        setReset(true);
-        Swal.fire({
-            title: 'Form Direset',
-            text: 'Semua data form telah direset.',
-            icon: 'success',
-            confirmButtonText: 'OK',
-        });
-        setTimeout(() => setReset(false), 0);
-    };
-
-    const validateRequiredFields = () => {
-        const requiredFields = {
-            imageProfile: 'Foto Profil',
-            familyProfile: 'Foto Kartu Keluarga (KK)',
-            ktpPhoto: 'Foto KTP',
-            selfiePhoto: 'Foto Selfie',
+            setLoading(false);
         };
-
-        const values = {
-            imageProfile,
-            familyProfile,
-            ktpPhoto,
-            selfiePhoto,
-        };
-
-        const newErrors = {};
-
-        for (const field in requiredFields) {
-            if (!values[field]) {
-                newErrors[field] = `${requiredFields[field]} wajib diisi.`;
-            }
-        }
-
-        if (Object.keys(newErrors).length > 0) {
-            setErrors(newErrors);
-            return false;
-        }
-
-        return true;
-    };
+        fetchDocument();
+    }, [atleetRefetchKey]);
 
     const handleSubmit = async () => {
         if (isSubmitting) {
-            window.location.reload();
-        }
-        if (!validateRequiredFields()) {
+            setActiveTab('general-form-tab');
+            setForm(false);
+            backTable();
             return;
         }
 
         const values = {
-            imageProfile,
-            familyProfile,
-            ktpPhoto,
-            selfiePhoto,
+            docsKtp,
+            docsIjazah,
+            docsAkte,
+            docsSelfieKtp,
+            docsImageProfile
         };
 
-        const validationErrors = validateDocument(values);
-        if (Object.keys(validationErrors).length > 0) {
-            setErrors(validationErrors);
-            let errorMessage = 'Harap perbaiki kesalahan pada form:\n';
-            for (const field in validationErrors) {
-                errorMessage += `- ${validationErrors[field]}\n`;
-            }
-
-            Swal.fire({
-                icon: 'error',
-                title: 'Validasi Gagal',
-                text: errorMessage,
-            });
-            return;
-        }
-
-        const maxSize = 5 * 1024 * 1024;
-        const fileErrors = {};
-
-        if (imageProfile && imageProfile.size > maxSize) {
-            fileErrors.imageProfile = 'Ukuran file Foto Profil melebihi 5MB.';
-        }
-        if (familyProfile && familyProfile.size > maxSize) {
-            fileErrors.familyProfile = 'Ukuran file Foto KK melebihi 5MB.';
-        }
-        if (ktpPhoto && ktpPhoto.size > maxSize) {
-            fileErrors.ktpPhoto = 'Ukuran file Foto KTP melebihi 5MB.';
-        }
-        if (selfiePhoto && selfiePhoto.size > maxSize) {
-            fileErrors.selfiePhoto = 'Ukuran file Foto Selfie melebihi 5MB.';
-        }
-
-        if (Object.keys(fileErrors).length > 0) {
-            let errorMessage = 'Ukuran file melebihi batas maksimum (5MB):\n';
-            for (const field in fileErrors) {
-                errorMessage += `- ${fileErrors[field]}\n`;
-            }
-
-            Swal.fire({
-                icon: 'error',
-                title: 'Ukuran File Melebihi Batas',
-                text: errorMessage,
-            });
-            return;
-        }
-
         const formData = new FormData();
-        if (imageProfile) formData.append('imageProfile', imageProfile);
-        if (familyProfile) formData.append('familyProfile', familyProfile);
-        if (ktpPhoto) formData.append('ktpPhoto', ktpPhoto);
-        if (selfiePhoto) formData.append('selfiePhoto', selfiePhoto);
-
-        additionalFiles.forEach((file, index) => {
-            if (file.file) {
-                formData.append(`additionalFiles[${index}][file]`, file.file);
-                formData.append(`additionalFiles[${index}][name]`, file.name);
-                formData.append(`additionalFiles[${index}][type]`, file.type);
+        for (const field in values) {
+            if (values[field] instanceof File) {
+                formData.append(field, values[field]);
             }
-        });
+        }
 
         try {
             let response;
-            if (documentId) {
-                response = await updateDocument(documentId, formData);
+            if (documentIds) {
+                response = await updateDocument(documentIds, formData);
             } else {
                 response = await storeDocument(formData);
             }
 
             if (response) {
-                Swal.fire({
-                    icon: 'success',
-                    title: 'Sukses',
-                    text: 'Dokumen berhasil disimpan!',
-                });
-                setIsSubmitting(true);
+                if (!isSubmitting) {
+                    Swal.fire({
+                        icon: 'success',
+                        title: 'Sukses',
+                        text: 'Dokumen berhasil disimpan!',
+                    });
+                    setIsSubmitting(true);
+                    setDocumentIds(null);
+                }
             }
         } catch (error) {
             Swal.fire({
@@ -1035,114 +1079,74 @@ const FormDokumen = ({ documentId, setActiveTab }) => {
     return (
         <div>
             <div className="mb-4">
-                <div>
-                    <h5 className="mb-1">Upload Dokumen</h5>
-                    <p className="text-muted">
-                        Yang memiliki symbol <code>*</code> Wajib diisi.
-                    </p>
-                </div>
+                <h5 className="mb-1">Upload Dokumen</h5>
+                <p className="text-muted">
+                    Yang memiliki simbol <code>*</code> wajib diisi.
+                </p>
             </div>
 
-            {/* File Utama */}
             <div className="row">
                 <div className="col-md-3">
                     <UploadFileComponent
-                        label="Foto Profil"
-                        name="imageProfile"
-                        required
-                        onChange={(file) => setImageProfile(file)}
-                        error={errors.imageProfile}
-                        reset={reset}
-                    />
-                </div>
-                <div className="col-md-3">
-                    <UploadFileComponent
-                        label="Foto Kartu Keluarga (KK)"
-                        name="familyProfile"
-                        required
-                        onChange={(file) => setFamilyProfile(file)}
-                        error={errors.familyProfile}
-                        reset={reset}
-                    />
-                </div>
-                <div className="col-md-3">
-                    <UploadFileComponent
                         label="Foto KTP"
-                        name="ktpPhoto"
+                        name="docsKtp"
                         required
-                        onChange={(file) => setKtpPhoto(file)}
-                        error={errors.ktpPhoto}
+                        onChange={(file) => setdocsKtp(file)}
+                        error={errors.docsKtp}
                         reset={reset}
+                        defaultPreview={docsKtp} // Pass the image URL here
                     />
                 </div>
                 <div className="col-md-3">
                     <UploadFileComponent
-                        label="Foto Selfie"
-                        name="selfiePhoto"
+                        label="Foto Ijazah"
+                        name="docsIjazah"
                         required
-                        onChange={(file) => setSelfiePhoto(file)}
-                        error={errors.selfiePhoto}
+                        onChange={(file) => setdocsIjazah(file)}
+                        error={errors.docsIjazah}
                         reset={reset}
+                        defaultPreview={docsIjazah} // Pass the image URL here
                     />
                 </div>
-            </div>
 
-            {/* File Tambahan */}
-            <div className="mt-4">
-                <button
-                    type="button"
-                    onClick={handleAddFile}
-                    className="btn btn-primary"
-                    disabled={isSubmitting || !documentId}
-                >
-                    <i className="ri-add-line label-icon align-middle fs-lg me-2" />
-                    Tambah File Lain
-                </button>
-
-                <div className="row mt-3">
-                    {additionalFiles.map((file, index) => (
-                        <div key={index} className="col-md-3">
-                            <div className="mb-3">
-                                <UploadFileComponent
-                                    label={`File Tambahan ${index + 1}`}
-                                    name={`additionalFile${index}`}
-                                    onChange={(file) => handleFileChange(index, file)}
-                                />
-                                <div className="d-flex flex-column gap-2">
-                                    <input
-                                        type="text"
-                                        className="form-control"
-                                        placeholder="Nama File (Contoh: Buku Masak)"
-                                        value={file.name}
-                                        onChange={(e) => handleFileNameChange(index, e.target.value)}
-                                    />
-                                    <button
-                                        type="button"
-                                        onClick={() => handleRemoveFile(index)}
-                                        className="btn btn-danger"
-                                    >
-                                        <i className="ri-delete-bin-line label-icon align-middle fs-lg me-2" />
-                                        Hapus File
-                                    </button>
-                                </div>
-                            </div>
-                        </div>
-                    ))}
+                <div className="col-md-3">
+                    <UploadFileComponent
+                        label="Foto Akte Kelahiran"
+                        name="docsAkte"
+                        required
+                        onChange={(file) => setdocsAkte(file)}
+                        error={errors.docsAkte}
+                        reset={reset}
+                        defaultPreview={docsAkte} // Pass the image URL here
+                    />
+                </div>
+                <div className="col-md-3">
+                    <UploadFileComponent
+                        label="Foto Selfie + KTP"
+                        name="docsSelfieKtp"
+                        required
+                        onChange={(file) => setdocsSelfieKtp(file)}
+                        error={errors.docsSelfieKtp}
+                        reset={reset}
+                        defaultPreview={docsSelfieKtp} // Pass the image URL here
+                    />
+                </div>
+                <div className="col-md-3">
+                    <UploadFileComponent
+                        label="Pas Foto"
+                        name="docsImageProfile"
+                        required
+                        onChange={(file) => setdocsImageProfile(file)}
+                        error={errors.docsImageProfile}
+                        reset={reset}
+                        defaultPreview={docsImageProfile} // Pass the image URL here
+                    />
                 </div>
             </div>
 
             {/* Tombol Reset dan Submit */}
             <div className="d-flex align-items-start gap-3 mt-4">
-                <button
-                    type="button"
-                    onClick={resetForm}
-                    className="btn btn-danger btn-label"
-                    disabled={isSubmitting || !documentId}
-                >
-                    <i className="ri-refresh-line label-icon align-middle fs-lg me-2" />
-                    Reset
-                </button>
-                {documentId && (
+                {peopleId && (
                     <button
                         type="button"
                         onClick={handleSubmit}
@@ -1157,4 +1161,5 @@ const FormDokumen = ({ documentId, setActiveTab }) => {
     );
 };
 
-export { FormUmum, FormAtleet, FormDokumen };
+
+export { FormUmumUpdate, FormAtleetUpdate, FormDokumenUpdate };

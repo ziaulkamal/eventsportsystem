@@ -51,9 +51,12 @@ export const getPerson = async (id) => {
 };
 
 export const updatePerson = async (id, data) => {
+    // console.log(id, data);
+    // return;
+    
   try {
     const token = getAuthToken();
-    const response = await axios.put(`${API_BASE_URL}/people/${id}`, data, {
+    const response = await axios.patch(`${API_BASE_URL}/people/${id}`, data, {
       headers: {
         Authorization: `Bearer ${token}`,
       },
@@ -129,6 +132,21 @@ export const getAthletes = async () => {
   try {
     const token = getAuthToken();
     const response = await axios.get(`${API_BASE_URL}/athlete-complete`, {
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+    });
+    return response.data;
+  } catch (error) {
+    console.error('Gagal mengambil data athlete:', error.response?.data?.message || error.message);
+    return { code: 500 };
+  }
+};
+
+export const getCoach = async () => {
+  try {
+    const token = getAuthToken();
+    const response = await axios.get(`${API_BASE_URL}/coach-complete`, {
       headers: {
         Authorization: `Bearer ${token}`,
       },

@@ -1,4 +1,4 @@
-import React, { useState, useCallback, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { useDropzone } from 'react-dropzone';
 import Swal from 'sweetalert2';
 
@@ -11,14 +11,23 @@ const UploadFileComponent = ({
   previewClassName = "mt-2",
   reset = false,
   error,
+  defaultPreview = null, // Menambahkan properti defaultPreview untuk menerima gambar awal
 }) => {
   const [preview, setPreview] = useState(null);
 
+  // Reset preview jika properti reset diubah
   useEffect(() => {
     if (reset) {
       setPreview(null);
     }
   }, [reset]);
+
+  // Memuat gambar defaultPreview jika ada
+  useEffect(() => {
+    if (defaultPreview) {
+      setPreview(defaultPreview); // Tampilkan gambar default jika ada
+    }
+  }, [defaultPreview]);
 
   const onDrop = useCallback((acceptedFiles, fileRejections) => {
     // Cek jika ada file yang ditolak karena ukuran atau tipe
@@ -91,8 +100,8 @@ const UploadFileComponent = ({
         {preview ? (
           <div
             style={{
-              width: '300px', // Set ukuran preview tetap
-              height: '310px', // Set ukuran preview tetap
+              width: '260px', // Set ukuran preview tetap
+              height: '320px', // Set ukuran preview tetap
               overflow: 'hidden', // Pastikan gambar yang terlalu besar tidak keluar
               borderRadius: '10px',
               marginBottom: '10px',
@@ -100,7 +109,6 @@ const UploadFileComponent = ({
               alignItems: 'center',
               justifyContent: 'center',
               backgroundColor: '#f9f9f9',
-              
             }}
           >
             <img
