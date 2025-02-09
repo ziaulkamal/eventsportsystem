@@ -4,6 +4,20 @@ import LoginLayout from '@/components/LoginLayout';
 import Title from '@/components/Title';
 import { login } from '@/utils/api/auth';
 
+export async function getServerSideProps(context) {
+  // Set header untuk mencegah caching
+  context.res.setHeader(
+    'Cache-Control',
+    'no-store, no-cache, must-revalidate, proxy-revalidate'
+  );
+  context.res.setHeader('Pragma', 'no-cache');
+  context.res.setHeader('Expires', '0');
+
+  return {
+    props: {}, // Tidak perlu mengirim props khusus
+  };
+}
+
 export default function Login() {
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');

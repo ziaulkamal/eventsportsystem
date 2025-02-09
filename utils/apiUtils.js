@@ -8,7 +8,7 @@ axios.interceptors.response.use(
     (error) => Promise.reject(error)
 );
 
-const API_BASE_URL = `${process.env.NEXT_PUBLIC_BASE_URL}/api`;
+const API_BASE_URL = `${process.env.NEXT_PUBLIC_API_URL}/api`;
 
 export const fetchPeopleByNIK = async (nik) => {
     try {

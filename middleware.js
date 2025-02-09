@@ -19,6 +19,13 @@ export function middleware(request) {
     return NextResponse.redirect(new URL('/', request.url));
   }
 
+  // Jika pengguna mengakses halaman login, tambahkan header untuk menghindari cache
+  if (pathname === '/login') {
+    const response = NextResponse.next();
+    response.headers.set('Cache-Control', 'no-store'); // Menghindari cache untuk halaman login
+    return response;
+  }
+
   // Jika token ada atau pengguna mengakses halaman /login tanpa token, lanjutkan
   return NextResponse.next();
 }
