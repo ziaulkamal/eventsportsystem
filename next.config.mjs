@@ -12,7 +12,7 @@ const nextConfig = {
           headers: [
             {
               key: 'Cache-Control',
-              value: 'public, max-age=3600, immutable', // Cache selama 1 tahun
+              value: 'public, max-age=360, immutable', // Cache selama 1 tahun
             },
           ],
         },

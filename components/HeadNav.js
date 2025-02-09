@@ -16,18 +16,18 @@ export default function HeadNav() {
                         <div className="navbar-brand-box horizontal-logo">
                             <Link href="/" className="logo logo-dark">
                                 <span className="logo-sm">
-                                    <img src={`${process.env.NEXT_PUBLIC_BASE_URL}/images/logo-sm.png`} alt="" height={22} />
+                                    <img src={`/images/logo-sm.png`} alt="" height={22} />
                                 </span>
                                 <span className="logo-lg">
-                                    <img src={`${process.env.NEXT_PUBLIC_BASE_URL}/images/logo-sm.png`} alt="" height={22} />
+                                    <img src={`/images/logo-sm.png`} alt="" height={22} />
                                 </span>
                             </Link>
                             <Link href="/" className="logo logo-light">
                                 <span className="logo-sm">
-                                    <img src={`${process.env.NEXT_PUBLIC_BASE_URL}/images/logo-sm.png`} alt="" height={22} />
+                                    <img src={`/images/logo-sm.png`} alt="" height={22} />
                                 </span>
                                 <span className="logo-lg">
-                                    <img src={`${process.env.NEXT_PUBLIC_BASE_URL}/images/logo-sm.png`} alt="" height={22} />
+                                    <img src={`/images/logo-sm.png`} alt="" height={22} />
                                 </span>
                             </Link>
                         </div>
@@ -67,7 +67,7 @@ export default function HeadNav() {
                             <button type="button" className="btn shadow-none btn-icon" id="page-header-user-dropdown"
                                 data-bs-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
                                 <span className="d-flex align-items-center">
-                                    <img className="rounded-circle header-profile-user" src={`${process.env.NEXT_PUBLIC_BASE_URL}/images/default-bg/male.png`}
+                                    <img className="rounded-circle header-profile-user" src={`/images/default-bg/male.png`}
                                         alt="Header Avatar" />
                                 </span>
                             </button>

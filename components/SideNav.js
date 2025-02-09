@@ -68,6 +68,13 @@ export default function SideNav() {
       <div className="container-fluid">
         <div id="two-column-menu"></div>
         <ul className="navbar-nav" id="navbar-nav">
+          <button
+            type="button"
+            className="btn btn-sm p-0 fs-3xl header-item float-end shadow-none"
+            id="vertical-hover"
+          >
+            <i className="ri-record-circle-line" />
+          </button>
           <li className="menu-title">
             <span data-key="t-menu">Menu</span>
           </li>

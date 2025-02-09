@@ -8,13 +8,12 @@ export default function Login() {
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
-  const [passwordVisible, setPasswordVisible] = useState(false);  // Menambah state untuk visibility password
+  const [passwordVisible, setPasswordVisible] = useState(false);
   const router = useRouter();
 
   const handleLogin = async (e) => {
     e.preventDefault();
 
-    // Validasi input
     if (!username || !password) {
       setError('Username dan password harus diisi');
       return;
@@ -24,21 +23,18 @@ export default function Login() {
       const response = await login(username, password);
 
       if (response.success) {
-        router.push('/'); 
+        // Simpan token di cookie
+        document.cookie = `authToken=${response.token}; path=/; max-age=3600`;
+        window.location.href = "/"; // Redirect ke halaman utama
       }
     } catch (error) {
       setError(error.message || 'Login failed');
     }
   };
 
-  const dataPage = {
-    title: 'Login',
-    subtitle: process.env.NEXT_PUBLIC_SITE_NAME,
-  };
-
   return (
     <LoginLayout>
-      <Title title={`${dataPage.title} - ${dataPage.subtitle}`} />
+      <Title title={`Login - ${process.env.NEXT_PUBLIC_SITE_NAME}`} />
       <section className="auth-page-wrapper py-5 position-relative bg-light d-flex align-items-center justify-content-center min-vh-100">
         <div className="container">
           <div className="row justify-content-center">

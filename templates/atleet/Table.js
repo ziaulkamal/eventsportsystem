@@ -32,8 +32,8 @@ const TableAtleet = ({ onEditClick, refresh }) => {
                 rowData: [
                     item.fullName || 'Tidak ada data',
                     item.imageProfile !== null ? `${process.env.DOMAIN_RETRIVE_DATA}/${item.imageProfile}`
-                    : item.gender === 'female' ? `${process.env.NEXT_PUBLIC_BASE_URL}/images/default-bg/female.png` 
-                    : `${process.env.NEXT_PUBLIC_BASE_URL}/images/default-bg/male.png`,
+                    : item.gender === 'female' ? `/images/default-bg/female.png` 
+                    : `/images/default-bg/male.png`,
                     item.identityNumber || 'Tidak ada data',
                     item.age || 'Tidak ada data',
                     item.gender === 'female' ? 'Perempuan' : 'Laki-laki',

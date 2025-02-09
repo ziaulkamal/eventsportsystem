@@ -29,11 +29,11 @@ const AdminLayout = ({ children }) => {
         </div>
       </div>
           {/* <Credit /> */}
-      <Script src={`${process.env.NEXT_PUBLIC_BASE_URL}/js/layout.js`} strategy="beforeInteractive" ></Script>
-      <Script src={`${process.env.NEXT_PUBLIC_BASE_URL}/libs/bootstrap/js/bootstrap.bundle.min.js`} strategy="beforeInteractive"></Script>
-      <Script src={`${process.env.NEXT_PUBLIC_BASE_URL}/js/plugins.js`} strategy="afterInteractive"></Script>
-      <Script src={`${process.env.NEXT_PUBLIC_BASE_URL}/libs/simplebar/simplebar.min.js`}></Script>
-      <Script src={`${process.env.NEXT_PUBLIC_BASE_URL}/js/app.js`} strategy="afterInteractive"></Script>
+      <Script src={`/js/layout.js`} strategy="beforeInteractive" ></Script>
+      <Script src={`/libs/bootstrap/js/bootstrap.bundle.min.js`} strategy="beforeInteractive"></Script>
+      <Script src={`/js/plugins.js`} strategy="afterInteractive"></Script>
+      <Script src={`/libs/simplebar/simplebar.min.js`}></Script>
+      <Script src={`/js/app.js`}></Script>
     </>
   );
 };
